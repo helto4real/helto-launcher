@@ -2,7 +2,7 @@ use crate::config::Config;
 use crate::desktop::DesktopApp;
 use crate::error::{LauncherError, Result};
 use crate::exec::CommandLine;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 pub fn command_for_app(app: &DesktopApp, config: &Config) -> CommandLine {
     if config.is_privileged(&app.id) {
@@ -25,7 +25,11 @@ pub fn launch_app(app: &DesktopApp, config: &Config) -> Result<()> {
 
 pub fn spawn_command(app_name: &str, command_line: &CommandLine) -> Result<()> {
     let mut command = Command::new(&command_line.program);
-    command.args(&command_line.args);
+    command
+        .args(&command_line.args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
     command.spawn().map(|_| ()).map_err(|source| {
         if source.kind() == std::io::ErrorKind::NotFound {
             LauncherError::MissingExecutable {

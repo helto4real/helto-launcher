@@ -99,6 +99,7 @@ impl Theme {
 .launcher-content,
 .launcher-panel,
 .launcher-bottom,
+.launcher-actions-panel,
 .launcher-results-frame,
 .launcher-results-frame viewport,
 .launcher-results {{
@@ -111,6 +112,14 @@ impl Theme {
     border: 1px solid {panel_background};
     border-radius: 8px;
     padding: 8px 7px;
+}}
+
+.launcher-actions-panel {{
+    background-color: {panel_background};
+    border: 1px solid {border};
+    border-radius: 10px;
+    padding: 7px 8px;
+    min-height: 44px;
 }}
 
 .launcher-search {{
@@ -127,25 +136,43 @@ impl Theme {
     color: {search_text};
 }}
 
-.launcher-results row,
+.launcher-result-row {{
+    background-color: transparent;
+    background-image: none;
+    padding: 0;
+}}
+
+.launcher-result-surface,
 .launcher-row {{
     background-color: {list_item_background};
     background-image: none;
     color: {text};
     border-radius: 8px;
-    padding: 6px 8px;
+    padding: 6px 10px;
 }}
 
-.launcher-results row:hover,
+.launcher-results row:hover .launcher-result-surface,
 .launcher-row:hover {{
     background-color: {list_item_hover};
 }}
 
 .launcher-results row:selected,
+.launcher-results row:selected .launcher-result-surface,
+.launcher-results row:selected .launcher-row,
+.launcher-row:selected {{
+    background-image: none;
+    border-radius: 8px;
+}}
+
+.launcher-results row:selected .launcher-result-surface,
 .launcher-results row:selected .launcher-row,
 .launcher-row:selected {{
     background-color: {list_item_selected};
     color: {text};
+}}
+
+.launcher-row-actions {{
+    min-width: 48px;
 }}
 
 button.launcher-button {{
@@ -190,6 +217,7 @@ button.launcher-button:disabled label {{
 button.launcher-icon-button {{
     min-width: 34px;
     min-height: 34px;
+    margin: 0;
     padding: 4px;
 }}
 

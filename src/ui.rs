@@ -139,24 +139,31 @@ fn build_ui(
     scrolled.set_child(Some(&results));
     content.append(&scrolled);
 
-    let bottom = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+    let bottom = gtk::Box::new(gtk::Orientation::Horizontal, 0);
     bottom.add_css_class("launcher-bottom");
-    bottom.set_margin_top(2);
+    bottom.set_margin_top(0);
     bottom.set_margin_start(4);
     bottom.set_margin_end(4);
     root.append(&bottom);
 
+    let actions_panel = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+    actions_panel.add_css_class("launcher-actions-panel");
+    actions_panel.set_hexpand(true);
+    bottom.append(&actions_panel);
+
     let remove_target = gtk::Label::new(Some("Drop favorite here to remove"));
     remove_target.add_css_class("launcher-muted");
-    bottom.append(&remove_target);
+    remove_target.set_valign(gtk::Align::Center);
+    actions_panel.append(&remove_target);
 
     let spacer = gtk::Box::new(gtk::Orientation::Horizontal, 0);
     spacer.set_hexpand(true);
-    bottom.append(&spacer);
+    actions_panel.append(&spacer);
 
     let status = gtk::Label::new(None);
     status.set_xalign(0.0);
     status.add_css_class("launcher-muted");
+    status.set_visible(false);
 
     for (label, action) in [
         ("Logout", PowerAction::Logout),
@@ -171,6 +178,7 @@ fn build_ui(
             PowerAction::Restart => "launcher-restart-button",
             PowerAction::Poweroff => "launcher-poweroff-button",
         });
+        button.set_valign(gtk::Align::Center);
         let model = model.clone();
         let widgets = UiWidgets {
             window: window.clone(),
@@ -181,7 +189,7 @@ fn build_ui(
             status: status.clone(),
         };
         button.connect_clicked(move |_| trigger_power(&model, &widgets, action));
-        bottom.append(&button);
+        actions_panel.append(&button);
     }
 
     root.append(&status);
@@ -200,7 +208,7 @@ fn build_ui(
         let widgets = widgets.clone();
         search.connect_changed(move |entry| {
             model.borrow_mut().pending_power = None;
-            widgets.status.set_text("");
+            clear_status(&widgets);
             refresh_results(&model, &widgets, entry.text().as_str());
         });
     }
@@ -264,29 +272,41 @@ fn refresh_results(model: &Rc<RefCell<UiModel>>, widgets: &UiWidgets, query: &st
         };
 
         let row = gtk::ListBoxRow::new();
-        row.add_css_class("launcher-row");
+        row.add_css_class("launcher-result-row");
         let row_box = gtk::Box::new(gtk::Orientation::Horizontal, 10);
+        row_box.add_css_class("launcher-result-surface");
+        row_box.set_hexpand(true);
         set_margin_all(&row_box, 4);
 
         let icon = app_icon(&app);
         icon.set_pixel_size(28);
+        icon.set_valign(gtk::Align::Center);
         row_box.append(&icon);
 
         let labels = gtk::Box::new(gtk::Orientation::Vertical, 2);
         labels.set_hexpand(true);
+        labels.set_valign(gtk::Align::Center);
         let name = gtk::Label::new(Some(&format!("Alt+{}  {}", (index % 9) + 1, app.name)));
         name.set_xalign(0.0);
+        name.set_hexpand(true);
+        name.set_ellipsize(gtk::pango::EllipsizeMode::End);
         labels.append(&name);
         if let Some(generic_name) = app.generic_name.as_deref().or(app.comment.as_deref()) {
             let subtitle = gtk::Label::new(Some(generic_name));
             subtitle.set_xalign(0.0);
+            subtitle.set_hexpand(true);
+            subtitle.set_ellipsize(gtk::pango::EllipsizeMode::End);
             subtitle.add_css_class("launcher-muted");
             labels.append(&subtitle);
         }
         row_box.append(&labels);
 
+        let action_area = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+        action_area.add_css_class("launcher-row-actions");
+        action_area.set_valign(gtk::Align::Center);
         let favorite = favorite_button(model, widgets, &app);
-        row_box.append(&favorite);
+        action_area.append(&favorite);
+        row_box.append(&action_area);
 
         row.set_child(Some(&row_box));
         widgets.results.append(&row);
@@ -472,6 +492,15 @@ fn handle_key(
     let ctrl = modifiers.contains(gdk::ModifierType::CONTROL_MASK);
     let alt = modifiers.contains(gdk::ModifierType::ALT_MASK);
 
+    if ctrl {
+        if let Some(number) = key.to_unicode().and_then(number_key) {
+            if (1..=5).contains(&number) {
+                launch_favorite_slot(model, widgets, number - 1);
+                return Propagation::Stop;
+            }
+        }
+    }
+
     if key == gdk::Key::Down || (ctrl && key.to_unicode() == Some('n')) {
         move_selection(&widgets.results, 1);
         return Propagation::Stop;
@@ -506,14 +535,7 @@ fn handle_key(
                 trigger_power(model, widgets, PowerAction::Poweroff);
                 return Propagation::Stop;
             }
-            Some(ch) => {
-                if let Some(slot) = number_key(ch) {
-                    if (1..=5).contains(&slot) {
-                        launch_favorite_slot(model, widgets, slot - 1);
-                        return Propagation::Stop;
-                    }
-                }
-            }
+            Some(_) => {}
             None => {}
         }
     }
@@ -564,9 +586,10 @@ fn launch_by_id(model: &Rc<RefCell<UiModel>>, widgets: &UiWidgets, app_id: &str)
     };
 
     if config.is_privileged(&app.id) {
-        widgets
-            .status
-            .set_text("Privilege elevation requested through pkexec/polkit.");
+        set_status(
+            widgets,
+            "Privilege elevation requested through pkexec/polkit.",
+        );
     }
 
     match launch_app(&app, &config) {
@@ -581,7 +604,7 @@ fn launch_by_id(model: &Rc<RefCell<UiModel>>, widgets: &UiWidgets, app_id: &str)
             widgets.window.close();
         }
         Err(err) => {
-            widgets.status.set_text(&err.to_string());
+            set_status(widgets, &err.to_string());
             error!("{err}");
         }
     }
@@ -590,10 +613,10 @@ fn launch_by_id(model: &Rc<RefCell<UiModel>>, widgets: &UiWidgets, app_id: &str)
 fn trigger_power(model: &Rc<RefCell<UiModel>>, widgets: &UiWidgets, action: PowerAction) {
     if action.needs_confirmation() && model.borrow().pending_power != Some(action) {
         model.borrow_mut().pending_power = Some(action);
-        widgets.status.set_text(&format!(
-            "Press {} again to confirm.",
-            action.command_name()
-        ));
+        set_status(
+            widgets,
+            &format!("Press {} again to confirm.", action.command_name()),
+        );
         return;
     }
 
@@ -601,10 +624,20 @@ fn trigger_power(model: &Rc<RefCell<UiModel>>, widgets: &UiWidgets, action: Powe
     match run_power_action(action, &commands) {
         Ok(()) => widgets.window.close(),
         Err(err) => {
-            widgets.status.set_text(&err.to_string());
+            set_status(widgets, &err.to_string());
             error!("{err}");
         }
     }
+}
+
+fn set_status(widgets: &UiWidgets, message: &str) {
+    widgets.status.set_text(message);
+    widgets.status.set_visible(true);
+}
+
+fn clear_status(widgets: &UiWidgets) {
+    widgets.status.set_text("");
+    widgets.status.set_visible(false);
 }
 
 fn app_icon(app: &DesktopApp) -> gtk::Image {

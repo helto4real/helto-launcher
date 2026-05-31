@@ -112,7 +112,7 @@ When searching, matches are ranked by:
 4. generic name or comment match
 5. small fuzzy match
 
-The favorites rail supports up to five apps. Press `1` through `5` to launch a visible favorite. Use the small favorite button in the result list to add or remove an app. Favorites can be reordered by dragging within the rail and removed through the remove target at the bottom. Some compositors/toolkit versions do not reliably report a drag outside the window, so the explicit remove target is the stable removal path.
+The favorites rail supports up to five apps. Press `Ctrl+1` through `Ctrl+5` to launch a visible favorite. Use the small favorite button in the result list to add or remove an app. Favorites can be reordered by dragging within the rail and removed through the remove target at the bottom. Some compositors/toolkit versions do not reliably report a drag outside the window, so the explicit remove target is the stable removal path.
 
 ## Keyboard Shortcuts
 
@@ -124,7 +124,7 @@ ArrowDown    select next result
 ArrowUp      select previous result
 Ctrl+n       select next result
 Ctrl+p       select previous result
-1-5          launch favorite in that slot when search is empty
+Ctrl+1-5     launch favorite in that slot
 Alt+1-Alt+9  launch visible result
 q            logout when search is empty
 r            restart when search is empty
