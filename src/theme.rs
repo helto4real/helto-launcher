@@ -371,8 +371,34 @@ pub fn theme_dirs() -> Vec<PathBuf> {
                 .join("themes"),
         );
     }
+    if let Ok(current_exe) = std::env::current_exe() {
+        if let Some(repo_theme_dir) = theme_dir_from_exe(&current_exe) {
+            push_unique(&mut dirs, repo_theme_dir);
+        }
+    }
     dirs.push(PathBuf::from("themes"));
     dirs
+}
+
+fn theme_dir_from_exe(exe: &Path) -> Option<PathBuf> {
+    let profile_dir = exe.parent()?;
+    let target_dir = profile_dir.parent()?;
+    if target_dir.file_name()? != "target" {
+        return None;
+    }
+
+    let profile = profile_dir.file_name()?.to_str()?;
+    if !matches!(profile, "debug" | "release") {
+        return None;
+    }
+
+    Some(target_dir.parent()?.join("themes"))
+}
+
+fn push_unique(values: &mut Vec<PathBuf>, value: PathBuf) {
+    if !values.contains(&value) {
+        values.push(value);
+    }
 }
 
 fn is_hex_color(value: &str) -> bool {
@@ -417,5 +443,32 @@ mod tests {
 
         let err = theme.validate("catppuccin-mocha").unwrap_err();
         assert!(err.to_string().contains("accent"));
+    }
+
+    #[test]
+    fn derives_theme_dir_from_release_binary_path() {
+        let path = Path::new("/home/thhel/git/helto-launcher/target/release/helto-launcher");
+
+        assert_eq!(
+            theme_dir_from_exe(path),
+            Some(PathBuf::from("/home/thhel/git/helto-launcher/themes"))
+        );
+    }
+
+    #[test]
+    fn derives_theme_dir_from_debug_binary_path() {
+        let path = Path::new("/home/thhel/git/helto-launcher/target/debug/helto-launcher");
+
+        assert_eq!(
+            theme_dir_from_exe(path),
+            Some(PathBuf::from("/home/thhel/git/helto-launcher/themes"))
+        );
+    }
+
+    #[test]
+    fn ignores_non_cargo_binary_path() {
+        let path = Path::new("/usr/bin/helto-launcher");
+
+        assert_eq!(theme_dir_from_exe(path), None);
     }
 }

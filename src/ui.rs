@@ -216,6 +216,19 @@ fn build_ui(
     {
         let model = model.clone();
         let widgets = widgets.clone();
+        search.connect_activate(move |_| {
+            let index = widgets
+                .results
+                .selected_row()
+                .map(|row| row.index() as usize)
+                .unwrap_or(0);
+            launch_visible_index(&model, &widgets, index);
+        });
+    }
+
+    {
+        let model = model.clone();
+        let widgets = widgets.clone();
         results.connect_row_activated(move |_, row| {
             launch_visible_index(&model, &widgets, row.index() as usize);
         });
