@@ -4,7 +4,7 @@ Helto Launcher is a small Rust/GTK4 application launcher for Arch Linux and Hypr
 
 ## Preview
 
-![Helto Launcher preview](docs/assets/helto-launcher-preview.png)
+<img src="docs/assets/helto-launcher-preview.png" alt="Helto Launcher preview" width="720">
 
 ## Requirements
 
