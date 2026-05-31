@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Terminal
+GenericName=Terminal Emulator
+Comment=Use the command line
+Exec=foot
+Icon=utilities-terminal
+Terminal=false
+Categories=System;TerminalEmulator;
+Keywords=shell;prompt;

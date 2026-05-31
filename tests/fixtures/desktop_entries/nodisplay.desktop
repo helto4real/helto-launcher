@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=No Display
+Exec=nodisplay
+NoDisplay=true
