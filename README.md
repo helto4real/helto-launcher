@@ -2,6 +2,10 @@
 
 Helto Launcher is a small Rust/GTK4 application launcher for Arch Linux and Hyprland. It is built for a search-first Wayland workflow: open it from a keybind, type immediately, launch, and get out of the way.
 
+## Preview
+
+![Helto Launcher preview](docs/assets/helto-launcher-preview.png)
+
 ## Requirements
 
 - Rust stable
