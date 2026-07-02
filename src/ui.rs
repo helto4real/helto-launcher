@@ -533,8 +533,7 @@ fn handle_key(
         }
     }
 
-    let search_empty = widgets.search.text().is_empty();
-    if search_empty {
+    if ctrl {
         match key.to_unicode() {
             Some('q') => {
                 trigger_power(model, widgets, PowerAction::Logout);

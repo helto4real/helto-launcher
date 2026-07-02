@@ -20,7 +20,7 @@ impl PowerAction {
     }
 
     pub fn needs_confirmation(self) -> bool {
-        matches!(self, Self::Restart | Self::Poweroff)
+        true
     }
 }
 
@@ -78,8 +78,8 @@ mod tests {
     }
 
     #[test]
-    fn restart_and_poweroff_need_confirmation() {
-        assert!(!PowerAction::Logout.needs_confirmation());
+    fn power_actions_need_confirmation() {
+        assert!(PowerAction::Logout.needs_confirmation());
         assert!(PowerAction::Restart.needs_confirmation());
         assert!(PowerAction::Poweroff.needs_confirmation());
     }

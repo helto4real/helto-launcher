@@ -130,12 +130,12 @@ Ctrl+n       select next result
 Ctrl+p       select previous result
 Ctrl+1-5     launch favorite in that slot
 Alt+1-Alt+9  launch visible result
-q            logout when search is empty
-r            restart when search is empty
-Shift+q      power off when search is empty
+Ctrl+q       logout
+Ctrl+r       restart
+Ctrl+Shift+q power off
 ```
 
-Restart and poweroff require pressing the action twice. Logout runs immediately after a deliberate button click or `q` with an empty search.
+Logout, restart, and poweroff require pressing the action twice.
 
 ## Privilege Elevation
 
